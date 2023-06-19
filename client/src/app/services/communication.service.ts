@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-magic-numbers */
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Message } from '@app/classes/message';
@@ -19,6 +20,11 @@ export class CommunicationService {
 
     basicPost(message: Message): Observable<void> {
         return this.http.post<void>(`${this.baseUrl}/example/send`, message).pipe(catchError(this.handleError<void>('basicPost')));
+    }
+
+    getDestinationLink(sourcelink: string): Observable<string> {
+        const linkId = sourcelink.split('/')[-1];
+        return this.http.get<string>(`${this.baseUrl}/link/` + linkId).pipe(catchError(this.handleError<string>('getDestinationLink')));
     }
 
     private handleError<T>(request: string, result?: T): (error: Error) => Observable<T> {

@@ -1,47 +1,64 @@
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-magic-numbers */
 import { HttpException } from '@app/classes/http.exception';
-import { DateController } from '@app/controllers/date.controller';
-import { ExampleController } from '@app/controllers/example.controller';
 import * as cookieParser from 'cookie-parser';
 import * as cors from 'cors';
 import * as express from 'express';
 import { StatusCodes } from 'http-status-codes';
 import * as logger from 'morgan';
-import * as swaggerJSDoc from 'swagger-jsdoc';
-import * as swaggerUi from 'swagger-ui-express';
+import * as shortId from 'shortid';
 import { Service } from 'typedi';
+import * as env from './../../client/src/environments/environment';
+import { UrlInfo } from './../../common/urlInfo';
+import { ShortenerService } from './shortener.service';
 
 @Service()
 export class Application {
     app: express.Application;
     private readonly internalError: number = StatusCodes.INTERNAL_SERVER_ERROR;
-    private readonly swaggerOptions: swaggerJSDoc.Options;
 
-    constructor(private readonly exampleController: ExampleController, private readonly dateController: DateController) {
+    constructor(private shortenerService: ShortenerService) {
         this.app = express();
 
-        this.swaggerOptions = {
-            swaggerDefinition: {
-                openapi: '3.0.0',
-                info: {
-                    title: 'Cadriciel Serveur',
-                    version: '1.0.0',
-                },
-            },
-            apis: ['**/*.ts'],
-        };
-
         this.config();
+        this.redirectUrl();
 
         this.bindRoutes();
     }
+    async getInfo(id: string): Promise<UrlInfo[]> {
+        return await this.shortenerService.getDestinationURL(id);
+    }
+
+    redirectUrl(): void {
+        this.app.get('/short', async (req, res) => {
+            const url = req.query.url as string;
+            const id = shortId.generate();
+            console.log('the ids is', id);
+            await this.shortenerService.addNewUrl(url, id);
+            res.send(env + `${id}`);
+        });
+
+        this.app.get('/:id', async (req, res) => {
+            const id = req.params.id as string;
+
+            const url = await this.getInfo(id);
+
+            console.log('urllllll', url);
+            if (url) {
+                res.redirect(url[0].destinationURL);
+            } else {
+                res.sendStatus(404);
+            }
+        });
+    }
 
     bindRoutes(): void {
-        this.app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerJSDoc(this.swaggerOptions)));
-        this.app.use('/api/example', this.exampleController.router);
-        this.app.use('/api/date', this.dateController.router);
-        this.app.use('/', (req, res) => {
+        // this.app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerJSDoc(this.swaggerOptions)));
+        // this.app.use('/api/example', this.exampleController.router);
+        // this.app.use('/api/date', this.dateController.router);
+        /* this.app.use('/', (req, res) => {
             res.redirect('/api/docs');
-        });
+        });*/
         this.errorHandling();
     }
 

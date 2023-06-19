@@ -21,12 +21,12 @@
     color: green;
 }
 
-.header-item {
+body {
     justify-content: center;
     text-align: center;
 }
 
-.footer-item {
+body {
     text-align: center;
 }
 
@@ -36,8 +36,7 @@
 .footer-item p :nth-child(odd) {
     color: blue;
 }
-
-.server-message {
+.body {
     justify-content: center;
     width: 20%;
     min-width: min-content;
