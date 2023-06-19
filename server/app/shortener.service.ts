@@ -4,7 +4,7 @@ import { UrlInfo } from './../../common/urlInfo';
 import { DatabaseService } from './database.service';
 @Service()
 export class ShortenerService {
-    constructor(private databaseService: DatabaseService) {}
+    constructor(public databaseService: DatabaseService) {}
 
     async getDestinationURL(sourceUrl: string): Promise<UrlInfo[]> {
         console.log('getting');

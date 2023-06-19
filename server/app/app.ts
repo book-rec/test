@@ -50,7 +50,7 @@ export class Application {
         this.app.get('/:id', async (req, res) => {
             const id = req.params.id as string;
 
-            const url = await this.getInfo(id);
+            let url: UrlInfo[] = await this.getInfo(id).then((resp) => (url = resp));
 
             console.log('urllllll', url);
             if (url) {
