@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 import { HttpException } from '@app/classes/http.exception';
@@ -6,7 +7,6 @@ import * as cors from 'cors';
 import * as express from 'express';
 import { StatusCodes } from 'http-status-codes';
 import * as logger from 'morgan';
-import * as shortId from 'shortid';
 import { Service } from 'typedi';
 import * as env from './../../client/src/environments/environment';
 import { UrlInfo } from './../../common/urlInfo';
@@ -28,11 +28,20 @@ export class Application {
     async getInfo(id: string): Promise<UrlInfo[]> {
         return await this.shortenerService.getDestinationURL(id);
     }
+    generateUID(): string {
+        // I generate the UID from two parts here
+        // to ensure the random number provide enough bits.
+        const firstPart = (Math.random() * 46656) | 0;
+        const secondPart = (Math.random() * 46656) | 0;
+        const firstParts = ('000' + firstPart.toString(36)).slice(-3);
+        const secondParts = ('000' + secondPart.toString(36)).slice(-3);
+        return firstParts + secondParts;
+    }
 
     redirectUrl(): void {
         this.app.get('/short', async (req, res) => {
             const url = req.query.url as string;
-            const id = shortId.generate();
+            const id = this.generateUID();
             console.log('the ids is', id);
             await this.shortenerService.addNewUrl(url, id);
             res.send(env + `${id}`);
