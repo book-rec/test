@@ -15,12 +15,14 @@ import { ShortenerService } from './shortener.service';
 @Service()
 export class Application {
     app: express.Application;
+    data: UrlInfo[] = [];
     private readonly internalError: number = StatusCodes.INTERNAL_SERVER_ERROR;
 
     constructor(private shortenerService: ShortenerService) {
         this.app = express();
 
         this.config();
+
         this.redirectUrl();
 
         this.bindRoutes();
@@ -48,14 +50,23 @@ export class Application {
         });
 
         this.app.get('/:id', async (req, res) => {
+            this.data = await this.shortenerService.getAll();
+            console.log('data', this.data);
+            const sources = Object.fromEntries(this.data.map((x) => [x.source, x.destinationURL]));
+
+            console.log('sources are', sources);
             const id = req.params.id as string;
 
             const url: UrlInfo[] = await this.getInfo(id);
 
             console.log('urllllll', url);
-            if (url) {
+            if (url.length > 0) {
                 res.redirect(url[0].destinationURL);
             } else {
+                if (Object.keys(sources).includes(id)) {
+                    res.redirect(sources[id]);
+                }
+
                 res.sendStatus(404);
             }
         });

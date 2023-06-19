@@ -10,6 +10,9 @@ export class ShortenerService {
         console.log('getting');
         return await this.databaseService.database.collection<UrlInfo>('url').find({ source: sourceUrl }).toArray();
     }
+    async getAll(): Promise<UrlInfo[]> {
+        return await this.databaseService.database.collection<UrlInfo>('url').find({}).toArray();
+    }
     async addNewUrl(destinationURL: string, source: string) {
         const urlInfo: UrlInfo = {
             source,
